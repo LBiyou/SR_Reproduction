@@ -57,7 +57,7 @@ contract PandaFactory is IPandaFactory {
         feeToSetter = _feeToSetter;
     }
 
-    function getPairInitCode() external view returns(bytes32 memory initCode) {
+    function getPairInitCode() external pure returns(bytes32 initCode) {
         initCode = keccak256(abi.encodePacked(type(PandaPair).creationCode));
     }
 }

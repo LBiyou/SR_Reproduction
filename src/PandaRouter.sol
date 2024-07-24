@@ -3,10 +3,12 @@ pragma solidity =0.6.6;
 import "./interfaces/IPandaFactory.sol";
 import "./libraries/TransferHelper.sol";
 import "./interfaces/IPandaRouter02.sol";
-import "./libraries/PandaLibrary.sol";
 import "./libraries/SafeMath.sol";
 import "./interfaces/IERC20.sol";
 import "./interfaces/IWETH.sol";
+import "./interfaces/IPandaPair.sol";
+
+import {PandaLibrary} from "./libraries/PandaLibrary.sol";
 
 contract PandaRouter02 is IPandaRouter02 {
     using SafeMath for uint;
