@@ -56,4 +56,8 @@ contract PandaFactory is IPandaFactory {
         require(msg.sender == feeToSetter, "Panda: FORBIDDEN");
         feeToSetter = _feeToSetter;
     }
+
+    function getPairInitCode() external view returns(bytes32 memory initCode) {
+        initCode = keccak256(abi.encodePacked(type(PandaPair).creationCode));
+    }
 }
