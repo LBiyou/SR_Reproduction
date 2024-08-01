@@ -64,21 +64,54 @@ contract TestUpgrade is Test {
     }
 
     function _upgrade() internal {
+        vm.startPrank(owner);
         TreasuryImplement new_TreasuryImp = new TreasuryImplement();
         projectAdmin.upgrade(
             ITransparentUpgradeableProxy(address(treasury)),
             address(new_TreasuryImp)
         );
+        vm.stopPrank();
     }
 
     function testUpgradeTreasury() external {
-        vm.startPrank(owner);
-        bytes32 _old = vm.load(address(treasury), 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc);
+        bytes32 _old = vm.load(
+            address(treasury),
+            0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc
+        );
         _upgrade();
-        bytes32 _new = vm.load(address(treasury), 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc);
+        bytes32 _new = vm.load(
+            address(treasury),
+            0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc
+        );
         emit log_named_bytes32("_old =>", _old);
         emit log_named_bytes32("_new =>", _new);
         assertNotEq(_old, _new);
-        vm.stopPrank();
+    }
+
+    function _upgrade_Initialize() internal {
+        vm.startPrank(owner);
+        TreasuryImplement new_TreasuryImp = new TreasuryImplement();
+
+        {
+            bytes memory treasuryInitData = abi.encodeWithSignature(
+                "initialize(address,address,address,address,address)",
+                owner,
+                address(aToken),
+                address(bToken),
+                address(usdt),
+                address(fundPool)
+            );
+            (bool success, ) = address(treasury).call(treasuryInitData);
+            require(success, "call failed");
+            projectAdmin.upgrade(
+                ITransparentUpgradeableProxy(address(treasury)),
+                address(new_TreasuryImp)
+            );
+            vm.stopPrank();
+        }
+    }
+
+    function testFailInitializeAgain() external {
+        _upgrade_Initialize();
     }
 }
