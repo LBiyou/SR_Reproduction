@@ -11,9 +11,11 @@ import {TreasuryImplement} from "../src/treasury/TreasuryImplement.sol";
 import {FundPool} from "../src/fundpool/FundPool.sol";
 import {FundPoolImplement} from "../src/fundpool/FundPoolImplement.sol";
 
+import {ITransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+
 import "forge-std/Test.sol";
 
-contract VerifyStorage is Test {
+contract TestUpgrade is Test {
     address owner = address(0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa);
     address user1 = address(0x1);
     AToken aToken;
@@ -31,7 +33,11 @@ contract VerifyStorage is Test {
         // init variables
         projectAdmin = new ProjectAdmin(); // duty of update proxy's implement
         treasuryImplement = new TreasuryImplement();
-        treasury = new Treasury(address(treasuryImplement),address(projectAdmin),"");
+        treasury = new Treasury(
+            address(treasuryImplement),
+            address(projectAdmin),
+            ""
+        );
         fundPoolImplement = new FundPoolImplement();
         fundPool = new FundPool(address(fundPoolImplement), owner, "");
         aToken = new AToken(address(treasury));
@@ -57,26 +63,22 @@ contract VerifyStorage is Test {
         vm.stopPrank();
     }
 
-    // function testFailMultiInitialize() external {
-    //     bytes memory initdata = abi.encodeWithSignature(
-    //         "initialize(address,address,address)",
-    //         owner,
-    //         address(aToken),
-    //         address(bToken)
-    //     );
-    //     vm.prank(owner);
-    //     (bool success, ) = address(treasury).call(initdata);
-    //     require(success, "call failed");
-    // }
+    function _upgrade() internal {
+        TreasuryImplement new_TreasuryImp = new TreasuryImplement();
+        projectAdmin.upgrade(
+            ITransparentUpgradeableProxy(address(treasury)),
+            address(new_TreasuryImp)
+        );
+    }
 
-    function testStorage() external {
-        bytes32 slot0 = vm.load(address(treasury), bytes32(uint256(0)));
-        emit log_bytes32(slot0);
-        bytes32 slot1 = vm.load(address(treasury), bytes32(uint256(1)));
-        assertEq(address(uint160(uint256(slot1))), address(aToken));
-        emit log_bytes32(slot1);
-        bytes32 slot2 = vm.load(address(treasury), bytes32(uint256(2)));
-        assertEq(address(uint160(uint256(slot2))), address(bToken));
-        emit log_bytes32(slot2);
+    function testUpgradeTreasury() external {
+        vm.startPrank(owner);
+        bytes32 _old = vm.load(address(treasury), 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc);
+        _upgrade();
+        bytes32 _new = vm.load(address(treasury), 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc);
+        emit log_named_bytes32("_old =>", _old);
+        emit log_named_bytes32("_new =>", _new);
+        assertNotEq(_old, _new);
+        vm.stopPrank();
     }
 }

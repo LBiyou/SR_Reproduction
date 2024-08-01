@@ -13,7 +13,8 @@ import {FundPoolImplement} from "../src/fundpool/FundPoolImplement.sol";
 
 import "forge-std/Test.sol";
 
-contract VerifyStorage is Test {
+contract TestTreasury is Test {
+
     address owner = address(0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa);
     address user1 = address(0x1);
     AToken aToken;
@@ -57,26 +58,45 @@ contract VerifyStorage is Test {
         vm.stopPrank();
     }
 
-    // function testFailMultiInitialize() external {
-    //     bytes memory initdata = abi.encodeWithSignature(
-    //         "initialize(address,address,address)",
-    //         owner,
-    //         address(aToken),
-    //         address(bToken)
-    //     );
-    //     vm.prank(owner);
-    //     (bool success, ) = address(treasury).call(initdata);
-    //     require(success, "call failed");
-    // }
+    function beforeTest(address _treasury, uint256 amount) internal {
+        usdt.approve(address(_treasury), amount);
+        bytes memory data = abi.encodeWithSignature(
+            "depositToken(uint256)", amount
+        );
+        (bool success, ) = address(_treasury).call(data);
+        require(success, "call faild");
+    }
 
-    function testStorage() external {
-        bytes32 slot0 = vm.load(address(treasury), bytes32(uint256(0)));
-        emit log_bytes32(slot0);
-        bytes32 slot1 = vm.load(address(treasury), bytes32(uint256(1)));
-        assertEq(address(uint160(uint256(slot1))), address(aToken));
-        emit log_bytes32(slot1);
-        bytes32 slot2 = vm.load(address(treasury), bytes32(uint256(2)));
-        assertEq(address(uint160(uint256(slot2))), address(bToken));
-        emit log_bytes32(slot2);
+    function testDeposit() external {
+
+        vm.startPrank(user1);
+        beforeTest(address(treasury), 1 ether);
+        uint256 funds = TreasuryImplement(address(treasury)).getUserFunds();
+        emit log_named_uint("Treasury's funds  =>",(funds));
+
+        uint256 aTokenBalance = aToken.balanceOf(address(fundPool));
+        emit log_named_uint("FundPool's AToken =>", (aTokenBalance));
+
+        uint256 bTokenBalance = bToken.balanceOf(address(user1));
+        emit log_named_uint("User1's BToken    =>", (bTokenBalance));
+
+        uint256 usdt_Balance = usdt.balanceOf(address(user1));
+        emit log_named_uint("User1's  USDT     =>", (usdt_Balance));
+
+        vm.stopPrank();
+    }
+
+    function testWithdraw() external {
+
+        vm.startPrank(user1);
+        beforeTest(address(treasury), 1 ether);
+        TreasuryImplement(address(treasury)).withdraw(1 ether);
+
+        uint256 bTokenBalance = bToken.balanceOf(address(user1));
+        emit log_named_uint("User1's BToken =>", bTokenBalance);
+
+        uint256 usdt_Balance = usdt.balanceOf(address(user1));
+        emit log_named_uint("User1's  USDT  =>", usdt_Balance);
+
     }
 }

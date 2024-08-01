@@ -2,10 +2,10 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+// import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
 // NOTE: The decimal is default 18
-contract BToken is ERC20, ERC20Burnable {
+contract BToken is ERC20 {
 
     address public treasury;
 
@@ -15,13 +15,17 @@ contract BToken is ERC20, ERC20Burnable {
 
     // limit the msg.sender
     modifier onlyTreasury {
-        require(msg.sender == treasury);
+        require(msg.sender == treasury, "You are not the treasury.");
         _;
     }
 
     // only the treasury can mint the B Token
-    function mint(address to, uint256 amount) public onlyTreasury {
+    function mint(address to, uint256 amount) onlyTreasury public {
         _mint(to, amount);
+    }
+
+    function burn(address account, uint256 amount) onlyTreasury public {
+        _burn(account, amount);
     }
 
     // the hooks function is to execute other operations in _transfer() function
