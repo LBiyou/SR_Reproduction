@@ -46,7 +46,7 @@ contract TestTreasury is Test {
         {
             bytes memory treasuryInitData = abi.encodeWithSignature(
                 "initialize(address,address,address,address,address)",
-                owner,
+                address(3),
                 address(aToken),
                 address(bToken),
                 address(usdt),

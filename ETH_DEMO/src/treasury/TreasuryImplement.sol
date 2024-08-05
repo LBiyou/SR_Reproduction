@@ -32,7 +32,7 @@ contract TreasuryImplement is Ownable, Initializable {
         address _bToken,
         address _usdt,
         address payable _fundPool
-    ) external initializer {
+    ) external reinitializer(uint8(1)) {
         require(_owner != address(0), "The _owner must not be zero.");
         _transferOwnership(_owner);
         aToken = AToken(_aToken);

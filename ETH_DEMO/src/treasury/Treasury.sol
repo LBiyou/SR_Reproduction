@@ -9,4 +9,6 @@ contract Treasury is TransparentUpgradeableProxy {
         address admin_,
         bytes memory _data
     ) TransparentUpgradeableProxy(_logic, admin_, _data) payable {}
+
+    
 }

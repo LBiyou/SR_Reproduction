@@ -19,6 +19,10 @@ contract AToken is ERC20 {
         _;
     }
 
+    function decimals() public view virtual override returns (uint8) {
+        return 6;
+    }
+
     // only the treasury can mint the A Token
     function mint(address to, uint256 amount) public onlyTreasury {
         _mint(to, amount);
