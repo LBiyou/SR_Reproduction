@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.16;
 
-import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {TransparentUpgradeableProxy} from "@openzeppelin/contracts@4.8.3/proxy/transparent/TransparentUpgradeableProxy.sol";
+
 
 contract Treasury is TransparentUpgradeableProxy {
     constructor(
